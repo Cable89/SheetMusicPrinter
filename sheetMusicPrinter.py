@@ -36,10 +36,11 @@ instruments = [
     ["Trombone"],
     ["Bass Trombone"],
     ["Euphonium"],
+    ["Baritone", "Baryton"],
     ["Tuba"],
     ["Bass"],
     ["Timpani"],
-    ["Percussion", "Perkusjon"],
+    ["Percussion", "Perkusjon", "Drums"],
     ["Harp"],
     ["Piano","Keyboard"],
     ["Choir"],
@@ -85,6 +86,27 @@ besetning_fhm = {
     "Bass": 1,
     "Timpani": 0,
     "Percussion": 0
+}
+
+#FHM
+besetning_fhm_uten_overlapp = {
+    "Piccolo": 1,
+    "Flute": 2,
+    "Clarinet": 3,
+    "Bass Clarinet": 0,
+    "Alto Sax": 1,
+    "Tenor Sax": 1,
+    "Baritone Sax": 0,
+    "Horn": 2,
+    "Trumpet": 4,
+    "Trombone": 2,
+    "Bass Trombone": 1,
+    "Euphonium": 1,
+    "Baritone": 1,
+    "Tuba": 1,
+    "Bass": 1,
+    "Timpani": 0,
+    "Percussion": 1
 }
 
 besetning = besetning_ohm
