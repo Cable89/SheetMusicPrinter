@@ -29,7 +29,6 @@ instruments = [
     ["Alto Sax", "Alto Saxophone", "Alt Saxofon", "Saxofon Alt", "Alt Sax", "Sax Alt", "Altsaxofon", "Altsax", "Altsaksofon"],
     ["Tenor Sax", "Tenor Saxophone", "Tenor Saxofon", "Saxofon Tenor", "Tenor Sax", "Sax Tenor", "Tenorsax", "Tenorsaxofon", "Tenorsaksofon"],
     ["Baritone Sax", "Baritone Saxophone", "Baryton Saxofon", "Saxofon Baryton", "Baryton Sax", "Sax Baryton", "Baritonsax", "Barytonsax", "Baritonsaxofon", "Barytonsaxofon", "Barytonsaksofon"],
-    ["Bassoon"],
     ["Contrabassoon"],
     ["Horn"],
     ["Trumpet", "Trompet", "Kornett", "Cornet"],
@@ -51,21 +50,24 @@ tunings = ["Bb", "Eb", "F"]
 # ØHM
 besetning_ohm = {
     "Piccolo": 1,
-    "Flute": 2,
-    "Clarinet": 4,
+    "Flute": 3,
+    "Clarinet": 6,
     "Bass Clarinet": 1,
-    "Alto Sax": 2,
+    "Bassoon": 1,
+    "Alto Sax": 3,
     "Tenor Sax": 1,
-    "Baritone Sax": 0,
+    "Baritone Sax": 1,
     "Horn": 4,
-    "Trumpet": 6,
-    "Trombone": 6,
+    "Trumpet": 8,
+    "Trombone": 8,
     "Bass Trombone": 1,
-    "Euphonium": 3,
-    "Tuba": 1,
+    "Euphonium": 4,
+    "Baritone": 4,
+    "Bassoon" : 1,
+    "Tuba": 3,
     "Bass": 1,
     "Timpani": 0,
-    "Percussion": 0
+    "Percussion": 1
 }
 
 #FHM
@@ -206,10 +208,14 @@ class sheetMusicPrinter(tk.Tk):
         pdf_files = path.glob('*pdf')
         for item in pdf_files:
             if item.is_file():
-                #musicfiles.append(str(item.name))
+                #musicfiles.append(item.name)
                 musicfiles.append(item)
         self.musicfiles = musicfiles
-        self.musicfiles_var = tk.Variable(value=self.musicfiles)
+        musicfiles_names = []
+        for file in musicfiles:
+            musicfiles_names.append(file.name)
+        
+        self.musicfiles_var = tk.Variable(value=musicfiles_names)
         self.musicfiles_box.config(listvariable=self.musicfiles_var)
         self.identify_and_sort_files()
         return musicfiles
