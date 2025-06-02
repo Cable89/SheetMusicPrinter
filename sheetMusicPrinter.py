@@ -431,6 +431,7 @@ class sheetMusicPrinter(tk.Tk):
                         args = [
                             "-dPrinted", "-dBATCH", "-dNOPAUSE", "-dNOPROMPT"
                             "-q",
+                            "-sPAPERSIZE#a4",
                             "-sDEVICE#mswinpr2",
                             "-sOutputFile#%printer%{}".format(win32print.GetDefaultPrinter()),
                             "{}".format(pathlib.PureWindowsPath(file))
