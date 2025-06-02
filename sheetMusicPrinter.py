@@ -11,9 +11,13 @@ import argparse
 import tkinter as tk
 import tkinter.ttk as ttk
 import win32print
-import ghostscript
 import locale
 import math
+
+try:
+    import ghostscript
+except ModuleNotFoundError:
+    logging.error("No ghostscript module installed, running in test mode")
 
 
 instruments = [
@@ -45,7 +49,129 @@ instruments = [
     ["Choir"],
 ]
 
-tunings = ["Bb", "Eb", "F"]
+clefs = [
+    ["TC", "T.C.", "G-nøkkel"],
+    ["BC", "B.C.", "F-nøkkel"]
+]
+
+tunings = [
+    ["Bb"],
+    ["Eb"],
+    ["F"],
+    ["C"]
+]
+
+class Instrument():
+    def __init__(self, name, tuning, clef, amount=1, part=None):
+        self.name = str(name)
+        self.tuning = str(tuning)
+        self.clef = str(clef)
+        self.part = part
+        self.amount = amount
+        self.aliases = None
+
+    def __str__(self):
+        if self.part is None:
+            return self.name + " in " + str(self.tuning) + " (" + str(self.clef) + ")"
+        else:
+            return self.name + " " + str(self.part) + " in " + str(self.tuning) + " (" + str(self.clef) + ")"
+
+
+class Piccolo(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Piccolo", "C", "TC", amount, part)
+
+class Flute(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Flute", "C", "TC", amount, part)
+
+class Clarinet(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Clarinet", "Bb", "TC", amount, part)
+
+class BassClarinet(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Bass Clarinet", "Bb", "TC", amount, part)
+        
+class Bassoon(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Bassoon", "C", "BC", amount, part)
+        
+class AltoSax(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Alto Sax", "Eb", "TC", amount, part)
+        
+class TenorSax(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Tenor Sax", "Bb", "TC", amount, part)
+        
+class BaritoneSax(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Baritone Sax", "Eb", "TC", amount, part)
+        
+class Horn(Instrument):
+    def __init__(self, tuning, amount=1, part=None):
+        Instrument.__init__(self, "Horn", tuning, "TC", amount, part)
+        
+class Trumpet(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Trumpet", "Bb", "TC", amount, part)
+        
+class Trombone(Instrument):
+    def __init__(self, tuning="C", clef="BC", amount=1, part=None):
+        Instrument.__init__(self, "Trombone", tuning=tuning, clef=clef, amount=amount, part=part)
+
+class BassTrombone(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Bass Trombone", "C", "BC", amount, part)
+        
+class Euphonium(Instrument):
+    def __init__(self, clef="BC", amount=1, part=None):
+        Instrument.__init__(self, "Euphonium", "Bb", clef, amount, part)
+        
+class Baritone(Instrument):
+    def __init__(self, clef="BC", amount=1, part=None):
+        Instrument.__init__(self, "Baritone", "Bb", clef, amount, part)
+
+class Tuba(Instrument):
+    def __init__(self, tuning="Bb", clef="BC", amount=1, part=None):
+        Instrument.__init__(self, "Tuba", tuning, clef, amount, part)
+        
+class Bass(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Bass", "C", "BC", amount, part)
+        
+class Timpani(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Timpani", None, "TC", amount, part)
+        
+class Percussion(Instrument):
+    def __init__(self, amount=1, part=None):
+        Instrument.__init__(self, "Percussion", None, None, amount, part)
+
+ohm = []
+ohm.append(Piccolo(1))
+ohm.append(Flute(3))
+ohm.append(BassClarinet(1))
+ohm.append(Bassoon(1))
+ohm.append(AltoSax(3))
+ohm.append(TenorSax(1))
+ohm.append(BaritoneSax(1))
+ohm.append(Horn("Eb", 2))
+ohm.append(Horn("F", 2))
+ohm.append(Trumpet(8))
+ohm.append(Trombone(amount=3))
+ohm.append(Trombone(clef="TC", amount=3))
+ohm.append(BassTrombone(1))
+ohm.append(Euphonium("TC", 3))
+ohm.append(Baritone("TC", 3))
+ohm.append(Tuba("Bb", "TC", 1))
+ohm.append(Tuba("Eb", "TC", 1))
+ohm.append(Tuba("C", "BC", 1))
+ohm.append(Bass(3))
+ohm.append(Percussion(1))
+
+besetning_classes_ohm = ohm
 
 # ØHM
 besetning_ohm = {
@@ -63,7 +189,6 @@ besetning_ohm = {
     "Bass Trombone": 1,
     "Euphonium": 4,
     "Baritone": 4,
-    "Bassoon" : 1,
     "Tuba": 3,
     "Bass": 1,
     "Timpani": 0,
@@ -113,8 +238,6 @@ besetning_fhm_uten_overlapp = {
 
 besetning = besetning_ohm
 
-
-
 class sheetMusicPrinter(tk.Tk):
     def __init__(self, path):
         tk.Tk.__init__(self)
@@ -155,28 +278,46 @@ class sheetMusicPrinter(tk.Tk):
 
         logging.debug(self.files_by_instrument)
 
-        # Add new widgets
-        for instrument_row in range(len(instruments)):
-            if len(self.files_by_instrument[instrument_row]) > 0:
-                logging.debug("Files by instrument[{}]: {}".format(instrument_row, self.files_by_instrument[instrument_row]))
+        usingclass = True
+
+        if usingclass == False:
+            # Add new widgets
+            for instrument_row in range(len(instruments)):
+                if len(self.files_by_instrument[instrument_row]) > 0:
+                    logging.debug("Files by instrument[{}]: {}".format(instrument_row, self.files_by_instrument[instrument_row]))
+                    e = tk.Entry(self)
+                    e.grid(row=instrument_row+2, column=2)
+                    e.insert(tk.END, instruments[instrument_row][0])
+                    e = tk.Entry(self)
+                    e.grid(row=instrument_row+2, column=3)
+                    if instruments[instrument_row][0] in besetning:
+                        e.insert(tk.END, besetning[instruments[instrument_row][0]])
+                    else:
+                        e.insert(tk.END, 0)
+                    e = tk.Button(self, text="Print", command= lambda r=instrument_row: self.print_one(self.files_by_instrument[r])) # No worky, instrument_row bytter verdi før knappen trykkes på
+                    e.grid(row=instrument_row+2, column=4)
+                elif (instruments[instrument_row][0] in besetning and besetning[instruments[instrument_row][0]] > 0):
+                    e = tk.Entry(self)
+                    e.grid(row=instrument_row+2, column=2)
+                    e.insert(tk.END, instruments[instrument_row][0])
+                    e =     tk.Entry(self)
+                    e.grid(row=instrument_row+2, column=3)
+                    e.insert(tk.END, "IKKE FUNNET")
+        else:
+            # Add widgets by class
+            row = 2
+            for instrument in besetning_classes_ohm:
                 e = tk.Entry(self)
-                e.grid(row=instrument_row+2, column=2)
-                e.insert(tk.END, instruments[instrument_row][0])
+                e.grid(row=row, column=2)
+                e.insert(tk.END, str(instrument))
                 e = tk.Entry(self)
-                e.grid(row=instrument_row+2, column=3)
-                if instruments[instrument_row][0] in besetning:
-                    e.insert(tk.END, besetning[instruments[instrument_row][0]])
-                else:
-                    e.insert(tk.END, 0)
-                e = tk.Button(self, text="Print", command= lambda r=instrument_row: self.print_one(self.files_by_instrument[r])) # No worky, instrument_row bytter verdi før knappen trykkes på
-                e.grid(row=instrument_row+2, column=4)
-            elif (instruments[instrument_row][0] in besetning and besetning[instruments[instrument_row][0]] > 0):
-                e = tk.Entry(self)
-                e.grid(row=instrument_row+2, column=2)
-                e.insert(tk.END, instruments[instrument_row][0])
-                e = tk.Entry(self)
-                e.grid(row=instrument_row+2, column=3)
-                e.insert(tk.END, "IKKE FUNNET")
+                e.grid(row=row, column=3)
+                e.insert(tk.END, instrument.amount)
+                e = tk.Button(self, text="Print", command= lambda r=instrument: self.print_one(instrument)) # No worky, instrument bytter verdi før knappen trykkes på
+                e.grid(row=row, column=4)
+                row = row + 1
+
+
                 
 
 
@@ -188,10 +329,13 @@ class sheetMusicPrinter(tk.Tk):
     # Read folders in sheet music library and populate the list of entries
     def readSheetMusicLibrary(self, path):
         libraryEntries = []
-        for item in path.iterdir():
-            if item.is_dir():
-                libraryEntries.append(str(item.name))
-        self.libraryEntries = libraryEntries
+        try:
+            for item in path.iterdir():
+                if item.is_dir():
+                    libraryEntries.append(str(item.name))
+            self.libraryEntries = libraryEntries
+        except FileNotFoundError:
+            logging.error("Sheet Music Library Path not found")
         return libraryEntries
 
     def search_result_selected(self, event):
@@ -277,6 +421,51 @@ class sheetMusicPrinter(tk.Tk):
             #subprocess.run("C:\\Program Files\\gs\\gs10.03.0\\bin\\gswin64.exe -dPrinted -dBATCH -dNOPAUSE -dNOPROMPT-q -dNumCopies#1 -sDEVICE#mswinpr2 -sOutputFile#%printer%{} \"{}\"".format(win32print.GetDefaultPrinter(), file))
 
     def print_all(self):
+        for instrument in range(len(instruments)):
+            if ( len(self.files_by_instrument[instrument]) > 0 ) and ( instruments[instrument][0] in besetning ) and (besetning[instruments[instrument][0]] > 0):
+                logging.debug("WOLOLO!")
+                for file in self.files_by_instrument[instrument]:
+                    logging.debug("Print: {}".format(file))
+                    numberOfCopies = math.ceil(besetning[instruments[instrument][0]] / len(self.files_by_instrument[instrument]))
+                    for copy in range(0,numberOfCopies):
+                        args = [
+                            "-dPrinted", "-dBATCH", "-dNOPAUSE", "-dNOPROMPT"
+                            "-q",
+                            "-sDEVICE#mswinpr2",
+                            "-sOutputFile#%printer%{}".format(win32print.GetDefaultPrinter()),
+                            "{}".format(pathlib.PureWindowsPath(file))
+                        ]
+
+                        encoding = locale.getpreferredencoding()
+                        args = [a.encode(encoding) for a in args]
+                        logging.debug(args)
+                        #with ghostscript.Ghostscript(*args) as g:
+                        ghostscript.Ghostscript(*args)
+                        ghostscript.cleanup()
+
+    def print_all_pdf(self):
+        for instrument in range(len(instruments)):
+            if ( len(self.files_by_instrument[instrument]) > 0 ) and ( instruments[instrument][0] in besetning ) and (besetning[instruments[instrument][0]] > 0):
+                logging.debug("WOLOLO!")
+                for file in self.files_by_instrument[instrument]:
+                    logging.debug("Print: {}".format(file))
+                    args = [
+                        "-dPrinted", "-dBATCH", "-dNOPAUSE", "-dNOPROMPT"
+                        "-q",
+                        "-dNumCopies#{}".format(math.ceil(besetning[instruments[instrument][0]] / len(self.files_by_instrument[instrument]) )),
+                        "-sDEVICE#pdfwrite",
+                        "-sOutputFile#combined.pdf",
+                        "{}".format(pathlib.PureWindowsPath(file))
+                    ]
+
+                    encoding = locale.getpreferredencoding()
+                    args = [a.encode(encoding) for a in args]
+                    logging.debug(args)
+                    #with ghostscript.Ghostscript(*args) as g:
+                    ghostscript.Ghostscript(*args)
+                    ghostscript.cleanup()
+    
+    def print_all_object(self):
         for instrument in range(len(instruments)):
             if ( len(self.files_by_instrument[instrument]) > 0 ) and ( instruments[instrument][0] in besetning ) and (besetning[instruments[instrument][0]] > 0):
                 logging.debug("WOLOLO!")
